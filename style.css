@@ -1,0 +1,325 @@
+:root {
+    --bg-color: #f2f2f2;
+    --text-color: #333;
+    --btn-bg: #fff;
+    --btn-color: #007aff;
+    --btn-border: 1px solid #ccc;
+    --btn-radius: 8px;
+    --font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    --shadow: none;
+    --row-bg: #fff;
+    --row-radius: 0;
+    --input-bg: transparent;
+    --input-border: none;
+    --glass-effect: none;
+}
+
+/* ================= iOS 6 (拟物化) ================= */
+.theme-ios6 {
+    --bg-color: #E6E6E6; /* 亚麻布背景 */
+    --text-color: #333;
+    --btn-bg: linear-gradient(to bottom, #fcfcfc, #dcdcdc);
+    --btn-color: #444;
+    --btn-border: 1px solid #999;
+    --btn-radius: 6px;
+    --font-family: "Helvetica", Arial, sans-serif;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8);
+    --row-bg: linear-gradient(to bottom, #fff, #f9f9f9);
+    --row-radius: 4px;
+    --input-bg: #fff;
+    --input-border: 1px solid #ccc;
+    --glass-effect: none;
+}
+.theme-ios6 body {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAIklEQVQIW2NkQAKrVq36zwjjgzj//v37zaivq/szNgdfAAWSEGeFHgljAAAAAElFTkSuQmCC'); /* 简易纹理 */
+}
+.theme-ios6 .btn-theme {
+    text-shadow: 0 1px 0 #fff;
+    box-shadow: var(--shadow);
+    font-weight: bold;
+}
+.theme-ios6 .row-item {
+    border: 1px solid #bbb;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* ================= iOS 7 (扁平化) ================= */
+.theme-ios7 {
+    --bg-color: #F7F7F7;
+    --text-color: #000;
+    --btn-bg: transparent;
+    --btn-color: #007AFF;
+    --btn-border: 1px solid #007AFF;
+    --btn-radius: 4px;
+    --font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --shadow: none;
+    --row-bg: #fff;
+    --row-radius: 0;
+    --input-bg: transparent;
+    --input-border: none;
+    --glass-effect: none;
+}
+.theme-ios7 .btn-theme {
+    font-weight: 300;
+}
+.theme-ios7 .row-item {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+/* ================= iOS 26 (液态玻璃) ================= */
+.theme-ios26 {
+    --bg-color: #000; /* 深色背景 */
+    --text-color: #fff;
+    --btn-bg: rgba(255, 255, 255, 0.1);
+    --btn-color: #fff;
+    --btn-border: 1px solid rgba(255, 255, 255, 0.2);
+    --btn-radius: 16px;
+    --font-family: "SF Pro Display", -apple-system, sans-serif;
+    --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    --row-bg: rgba(255, 255, 255, 0.05);
+    --row-radius: 16px;
+    --input-bg: rgba(0, 0, 0, 0.2);
+    --input-border: 1px solid rgba(255, 255, 255, 0.1);
+    --glass-effect: blur(10px);
+}
+.theme-ios26 body {
+    background: linear-gradient(135deg, #1f005c, #5b0060, #870160, #ac255e, #ca485c, #e16b5c, #f39060, #ffb56b);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+}
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+.theme-ios26 .row-item, .theme-ios26 .app-header, .theme-ios26 .app-footer, .theme-ios26 .list-header {
+    backdrop-filter: var(--glass-effect);
+    -webkit-backdrop-filter: var(--glass-effect);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: var(--shadow);
+}
+
+/* ================= 通用布局 ================= */
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-family);
+    margin: 0;
+    padding: 20px;
+    padding-bottom: 100px; /* 为底部总计留空 */
+    transition: background 0.3s, color 0.3s;
+}
+
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: var(--row-radius);
+    background: var(--row-bg); /* 跟随行背景 */
+    position: relative;
+}
+
+/* 换肤按钮新样式 */
+.theme-switch {
+    display: flex;
+    gap: 10px;
+}
+
+.theme-switch .btn-theme {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px; /* 圆角矩形 */
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* 阴影 */
+    color: #fff; /* 文字白色 */
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    transition: transform 0.1s;
+}
+
+.theme-switch .btn-theme:active {
+    transform: scale(0.95);
+}
+
+/* 浅灰色 */
+.theme-ios6-btn {
+    background-color: #9E9E9E !important; 
+    border: 1px solid #888 !important;
+}
+/* 浅蓝色 */
+.theme-ios7-btn {
+    background-color: #87CEEB !important;
+    border: 1px solid #5F9EA0 !important;
+}
+/* 深蓝色 */
+.theme-ios26-btn {
+    background-color: #00008B !important;
+    border: 1px solid #191970 !important;
+}
+
+/* 表头样式 */
+.list-header {
+    display: flex;
+    padding: 10px;
+    font-weight: bold;
+    font-size: 14px;
+    opacity: 0.7;
+    margin-bottom: 5px;
+    background: var(--row-bg); /* 可选 */
+    border-radius: var(--row-radius);
+}
+
+.list-header span {
+    text-align: center;
+}
+
+.header-name { flex: 2; text-align: left !important; }
+.header-price { width: 60px; text-align: right !important; margin-right: 10px;}
+.header-qty { width: 100px; } /* 包含了按钮宽度 */
+.header-total { flex: 1; text-align: right !important; }
+.header-action { width: 30px; } /* 删除按钮占位 */
+
+/* 列表行对齐 */
+.row-item {
+    display: flex;
+    align-items: center;
+    background: var(--row-bg);
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: var(--row-radius);
+    position: relative;
+    border-left: 5px solid var(--row-color, #ccc); 
+}
+
+.input-name {
+    flex: 2;
+    background: var(--input-bg);
+    border: var(--input-border);
+    color: var(--text-color);
+    padding: 5px;
+    margin-right: 5px;
+    border-radius: 4px;
+    font-size: 16px;
+    width: 80px; /* 最小宽度 */
+}
+
+.input-price {
+    width: 60px;
+    background: var(--input-bg);
+    border: var(--input-border);
+    color: var(--text-color);
+    padding: 5px;
+    text-align: right;
+    margin-right: 10px;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.qty-control {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: 100px;
+    justify-content: center;
+}
+
+.btn-minus, .btn-plus {
+    width: 28px;
+    height: 28px;
+    background: var(--btn-bg);
+    color: var(--btn-color);
+    border: var(--btn-border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.input-qty {
+    width: 30px;
+    text-align: center;
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.row-total {
+    flex: 1;
+    text-align: right;
+    font-weight: bold;
+    margin-left: 10px;
+    min-width: 50px;
+}
+
+.btn-delete {
+    background: transparent;
+    border: none;
+    color: #ff3b30;
+    font-size: 20px;
+    margin-left: 10px;
+    width: 30px;
+    cursor: pointer;
+}
+
+/* 重置按钮 */
+.btn-reset {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    color: var(--text-color);
+    transition: transform 0.3s;
+}
+.btn-reset:hover {
+    transform: rotate(180deg);
+}
+
+.app-footer {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    background: var(--row-bg);
+    padding: 15px;
+    border-radius: var(--row-radius);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+}
+
+.btn-add-row {
+    width: 44px;
+    height: 44px;
+    background: #34C759;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(52, 199, 89, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.total-display {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* 适配移动端 */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
