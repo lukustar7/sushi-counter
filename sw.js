@@ -2,13 +2,13 @@
 // 🍣 寿司计数器 PWA Service Worker 离线缓存控制脚本 (sw.js)
 // ==========================================================
 
-const CACHE_NAME = 'sushi-counter-cache-v2';
+const CACHE_NAME = 'sushi-counter-cache-v3';
 
 // 预缓存核心静态资源，保障无网络环境下依然 0.1 秒离线秒开！
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
-    './style.css',
+    './style.css?v=2.2', // 双重保险：加上版本指纹，防止 Service Worker 级联读取旧 CSS 缓存
     './script.js',
     './manifest.json',
     './icon.svg'
