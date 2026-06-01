@@ -502,16 +502,16 @@ body {
 /* ================= 底部小票贴底面板 (彻底消灭多平台穿模) ================= */
 .app-footer {
     position: fixed;
-    bottom: 0;                      /* 彻底贴紧屏幕底部，防止文字溢出露怯 */
+    bottom: 0;                      /* 彻底贴紧屏幕底部，防止文字溢出 */
     left: 50%;                      /* 水平居中核心：在大屏/折叠屏/平板上也能绝对居中 */
     transform: translateX(-50%);     
     width: 100%;
     max-width: 600px;               /* 严格跟随 body 的最大宽度 */
     background: var(--row-bg);      /* 纯白实体背景，完美遮挡一切文字 */
-    padding: 12px 18px;
+    padding: 8px 16px;              /* 极限缩窄纵向内边距，极致释放屏幕高度 */
     
     /* 极致高兼容性安全区适配：完美适配带刘海的苹果/安卓全面屏，普通老安卓则优雅回退 */
-    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     
     border-top: 2.5px dashed #E2DDD5; /* 小票撕口虚线顶边 */
     border-left: 1px solid #E2DDD5;
@@ -523,19 +523,20 @@ body {
 }
 
 .btn-add-row {
-    width: 42px;
-    height: 42px;
+    width: 36px;
+    height: 36px;
     background: #34C759;
     color: white;
     border: none;
     border-radius: 50%;
-    font-size: 26px;
+    font-size: 22px;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(52, 199, 89, 0.35);
+    box-shadow: 0 3px 8px rgba(52, 199, 89, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 0 3px 0;
+    padding: 0 0 2px 0;
+    margin: 0;
 }
 .btn-add-row:hover {
     background: #2fbc50;

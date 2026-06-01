@@ -3,15 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>寿司郎专属计数器 v2.0</title>
+    <title>寿司计数器 v2.0</title>
     <link rel="stylesheet" href="style.css">
+    
+    <!-- 📲 渐进式网页 App (PWA) 核心支持元数据，实现“添加到主屏幕”全屏原生体验 -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes"> <!-- iOS 全屏 App 支持 -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="寿司计数器">
+    <link rel="apple-touch-icon" href="icon.svg"> <!-- iOS 专属桌面高档图标 -->
 </head>
 <body class="theme-sushiro"> <!-- 寿司郎专属视觉主题 -->
 
     <!-- 顶部控制栏 (标题 + 重置) -->
     <header class="app-header">
         <div class="header-placeholder"></div> <!-- 用于两侧对称排版对齐 -->
-        <h1>寿司郎专属计数器</h1>
+        <h1>寿司计数器</h1>
         <button onclick="resetAll()" class="btn-reset" title="重置所有数据">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
         </button>

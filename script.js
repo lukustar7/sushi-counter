@@ -76,6 +76,15 @@ function init() {
 
     // 4. 执行首次全局渲染与金额计算
     renderAll();
+
+    // 5. 注册 PWA Service Worker (支持桌面添加到屏幕与100%离线秒开)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('[PWA] Service Worker 注册成功！Scope:', reg.scope))
+                .catch(err => console.log('[PWA] Service Worker 注册失败：', err));
+        });
+    }
 }
 
 /**
