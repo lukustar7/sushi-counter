@@ -1,11 +1,11 @@
 /* ==========================================================
-// 🍣 寿司计数器 2.1「正宗寿司郎收银版」全局样式表 (Sushiro Board)
+// 🍣 寿司计数器 2.1 全局样式表
 // ========================================================== */
 
 :root {
-    --bg-color: #FAF8F3;            /* 寿司郎日式暖米背景色 */
+    --bg-color: #FAF8F3;            /* 日式暖米背景色 */
     --text-color: #1A1A1A;          /* 海苔黑文字 */
-    --btn-bg: #E60012;              /* 寿司郎大红 */
+    --btn-bg: #E60012;              /* 经典大红 */
     --btn-color: #FFFFFF;           /* 按钮纯白文字 */
     --btn-border: 1px solid #D60010;
     --btn-radius: 12px;             /* 亲和力圆角 */
@@ -41,7 +41,7 @@ body {
     padding: 12px 16px;
     margin-bottom: 15px;
     border-radius: var(--row-radius);
-    background: #E60012; /* 寿司郎经典红 */
+    background: #E60012; /* 经典大红 */
     color: #FFFFFF;
     box-shadow: 0 4px 14px rgba(230, 0, 18, 0.2);
     border: 1px solid #D60010;
@@ -75,7 +75,7 @@ body {
     transform: rotate(180deg);
 }
 
-/* 寿司郎经典旋转传送带线条 */
+/* 经典旋转传送带线条 */
 .conveyor-belt-line {
     height: 4px;
     background: repeating-linear-gradient(
