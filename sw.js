@@ -6,7 +6,17 @@
 // 从而彻底避开浏览器缓存延迟，确保您每次在手机或模拟器里刷新，都 100% 看到最新界面！
 // 当全部调试满意、准备打包上线时，我们再一键恢复 100% 离线缓存。
 
-const CACHE_NAME = 'sushi-counter-cache-v-temp';
+const CACHE_NAME = 'sushi-counter-cache-v4';
+
+// 预缓存核心静态资源，保障无网络环境下依然 0.1 秒离线秒开！
+const ASSETS_TO_CACHE = [
+    './',
+    './index.html',
+    './style.css?v=2.3', // 再次升级指纹
+    './script.js',
+    './manifest.json',
+    './icon.svg'
+];
 
 // 1. 安装事件：清除可能残留在 Cache 中的旧文件
 self.addEventListener('install', event => {

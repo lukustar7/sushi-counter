@@ -510,6 +510,11 @@ body {
     background: var(--row-bg);      /* 纯白实体背景，完美遮挡一切文字 */
     padding: 8px 16px;              /* 极限缩窄纵向内边距，极致释放屏幕高度 */
     
+    /* 核心 Flexbox 布局，强力约束子元素完美并排、两端对齐且垂直居中 */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
     /* 极致高兼容性安全区适配：完美适配带刘海的苹果/安卓全面屏，普通老安卓则优雅回退 */
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     
