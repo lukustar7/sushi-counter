@@ -1,5 +1,5 @@
 // ==========================================================
-// 🍣 寿司计数器 2.0 核心业务逻辑脚本 (Sushiro Board)
+// 🍣 寿司计数器 2.1 核心业务逻辑脚本 (Sushiro Board)
 // ==========================================================
 
 // 经典寿司盘默认配置（白、红、银、金、黑五色，分别匹配 8/10/15/20/28 元）
@@ -25,7 +25,7 @@ const BEAUTIFUL_COLORS = [
 
 // 全局状态管理 State
 let state = {
-    classicPlates: {}, // 经典寿司盘数量管理
+    classicPlates: {}, // 经典寿司盘数量及单价管理
     customItems: [],   // 用户自定义单点餐品行
     teaPrice: 5,       // 茶位费单价（默认 5 元/人）
     dineCount: 1       // 就餐人数（默认 1 人）
@@ -46,7 +46,7 @@ function init() {
     document.getElementById('tea-price').value = state.teaPrice;
     document.getElementById('dine-count').value = state.dineCount;
 
-    // 2. 从 LocalStorage 恢复经典盘子数据，若无则使用默认零盘初始化
+    // 2. 从 LocalStorage 恢复经典盘子数据（含自定义单价），若无则使用默认零盘初始化
     const savedClassicData = localStorage.getItem('sushi_classic_plates');
     if (savedClassicData) {
         state.classicPlates = JSON.parse(savedClassicData);
@@ -56,6 +56,14 @@ function init() {
         }
     } else {
         state.classicPlates = JSON.parse(JSON.stringify(DEFAULT_CLASSIC_PLATES));
+    }
+
+    // 将恢复出来的经典盘子单价实时同步回对应的 input 输入框中
+    for (const color in state.classicPlates) {
+        const priceInput = document.getElementById(`price-${color}`);
+        if (priceInput) {
+            priceInput.value = state.classicPlates[color].price;
+        }
     }
 
     // 3. 从 LocalStorage 恢复自定义餐品行
@@ -102,6 +110,22 @@ function changeClassicQty(color, delta) {
         
         saveState();
         renderAll();
+    }
+}
+
+/**
+ * 允许用户手动修改经典彩盘的单价（支持景区/折扣店等自定义定价）
+ * @param {string} color 盘子颜色键值
+ * @param {string} newPrice 用户输入的新单价
+ */
+function updateClassicPrice(color, newPrice) {
+    if (state.classicPlates[color]) {
+        let price = parseFloat(newPrice);
+        if (isNaN(price) || price < 0) price = 0; // 容错处理：不合法单价设为 0
+        state.classicPlates[color].price = price;
+        
+        saveState();
+        updateTotal();
     }
 }
 
@@ -153,10 +177,10 @@ function renderCustomList() {
         // 设置侧边盘子装饰条颜色的 CSS 变量
         row.style.setProperty('--row-color', item.color || '#ccc');
 
-        // 动态注入横行结构（支持名称修改、单价修改、加减计数和小计）
+        // 动态注入横行结构（在价格框中追加 onfocus="clearZero(this)" 等智能清零功能，免去手动按退格键退掉 0 元的繁琐操作）
         row.innerHTML = `
             <input type="text" class="input-name" value="${item.name}" placeholder="餐品名称" onchange="updateCustomItem(${index}, 'name', this.value)">
-            <input type="number" class="input-price" value="${item.price}" placeholder="0" onchange="updateCustomItem(${index}, 'price', this.value)">
+            <input type="number" class="input-price" value="${item.price}" placeholder="0" onfocus="clearZero(this)" onblur="restoreZero(this, 0)" onchange="updateCustomItem(${index}, 'price', this.value)">
             
             <div class="qty-control">
                 <button class="btn-minus" onclick="changeCustomQty(${index}, -1)">-</button>
@@ -169,6 +193,29 @@ function renderCustomList() {
         `;
         container.appendChild(row);
     });
+}
+
+/**
+ * 智能清空输入框默认零值（多平台全兼容实现）
+ * @param {HTMLInputElement} input 输入框对象
+ */
+function clearZero(input) {
+    if (input.value === '0') {
+        input.value = '';
+    }
+}
+
+/**
+ * 失焦时若内容为空则自动填补默认值，防止账单数据破损
+ * @param {HTMLInputElement} input 输入框对象
+ * @param {number} defaultValue 默认填补的值
+ */
+function restoreZero(input, defaultValue) {
+    if (input.value.trim() === '') {
+        input.value = defaultValue;
+        // 触发一次值更新计算
+        input.dispatchEvent(new Event('change'));
+    }
 }
 
 /**
@@ -197,7 +244,7 @@ function changeCustomQty(index, delta) {
 }
 
 /**
- * 新增一行自定义单点餐品
+ * 新增一行自定义单点餐品（体验优化：默认价格为 0 元，但因为有聚焦自动清空，用户输入极度丝滑）
  */
 function addCustomRow() {
     const newId = Date.now();
@@ -268,7 +315,7 @@ function saveState() {
 }
 
 /**
- * 重置所有数据（恢复初始收银面板设定：经典五盘归零、茶位5元、人数1人、清空单点行）
+ * 重置所有数据（恢复初始收银面板设定：经典五盘价格和数量归零/默认、茶位5元、人数1人、清空单点行）
  */
 function resetAll() {
     if (confirm('确定要重置所有点单数据吗？这将恢复到默认的 1 人就餐及零消费。')) {
@@ -277,9 +324,15 @@ function resetAll() {
         state.customItems = [];
         state.classicPlates = JSON.parse(JSON.stringify(DEFAULT_CLASSIC_PLATES));
 
-        // 更新 DOM
+        // 更新 DOM 输入框的价值
         document.getElementById('tea-price').value = 5;
         document.getElementById('dine-count').value = 1;
+        for (const color in state.classicPlates) {
+            const priceInput = document.getElementById(`price-${color}`);
+            if (priceInput) {
+                priceInput.value = state.classicPlates[color].price;
+            }
+        }
 
         saveState();
         renderAll();

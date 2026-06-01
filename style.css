@@ -1,5 +1,5 @@
 /* ==========================================================
-// 🍣 寿司计数器 2.0「正宗寿司郎收收银版」全局样式表 (Sushiro Board)
+// 🍣 寿司计数器 2.1「正宗寿司郎收银版」全局样式表 (Sushiro Board)
 // ========================================================== */
 
 :root {
@@ -27,7 +27,7 @@ body {
     font-family: var(--font-family);
     margin: 0;
     padding: 15px;
-    padding-bottom: 120px; /* 留出底部结算面板的高度 */
+    padding-bottom: 140px; /* 增大底部间距，完全防止最后一项被底部小票栏挡住 */
     transition: background 0.3s, color 0.3s;
     max-width: 600px; /* 适配移动端的最佳居中宽度 */
     margin: 0 auto;
@@ -151,6 +151,15 @@ body {
     margin-left: 2px;
 }
 
+/* 👥 人数加减器专属高兼容性容器，强力防止 WebKit/Safari input 撑开 */
+.dine-qty-control {
+    width: 90px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    justify-content: center;
+}
+
 /* ================= 经典寿司盘快捷网格区 ================= */
 .classic-plates-section {
     background: var(--row-bg);
@@ -246,8 +255,9 @@ body {
 .plate-info {
     display: flex;
     flex-direction: column;
-    margin-bottom: 6px;
-    gap: 1px;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 2px;
 }
 
 .plate-name {
@@ -256,10 +266,38 @@ body {
     color: #1A1A1A;
 }
 
-.plate-price {
+/* 💵 可编辑拟真单价输入框样式 */
+.plate-price-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 12px;
     font-weight: 700;
     color: #E60012;
+    background: rgba(230, 0, 18, 0.03); /* 微红提示背景 */
+    border: 1px solid rgba(226, 221, 213, 0.4);
+    border-radius: 6px;
+    padding: 1px 4px;
+    width: 48px;
+    margin-top: 2px;
+}
+
+.input-plate-price {
+    width: 24px;
+    border: none !important;
+    background: transparent !important;
+    color: #E60012;
+    font-size: 12px;
+    font-weight: 800;
+    text-align: center;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.input-plate-price:focus {
+    outline: none !important;
+    background: rgba(230, 0, 18, 0.08) !important;
+    border-radius: 3px;
 }
 
 /* 经典盘加减触控区 */
@@ -461,27 +499,27 @@ body {
     transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s, border 0.2s, box-shadow 0.2s;
 }
 
-/* ================= 底部小票质感账单面板 ================= */
+/* ================= 底部小票贴底面板 (彻底消灭多平台穿模) ================= */
 .app-footer {
     position: fixed;
-    bottom: 18px;
-    left: 15px;
-    right: 15px;
-    background: var(--row-bg);
+    bottom: 0;                      /* 彻底贴紧屏幕底部，防止文字溢出露怯 */
+    left: 50%;                      /* 水平居中核心：在大屏/折叠屏/平板上也能绝对居中 */
+    transform: translateX(-50%);     
+    width: 100%;
+    max-width: 600px;               /* 严格跟随 body 的最大宽度 */
+    background: var(--row-bg);      /* 纯白实体背景，完美遮挡一切文字 */
     padding: 12px 18px;
-    border-radius: var(--row-radius);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    /* 小票质感设计：虚线分割顶边 + 寿司大红粗底边 */
-    border-top: 2.5px dashed #E2DDD5;
+    
+    /* 极致高兼容性安全区适配：完美适配带刘海的苹果/安卓全面屏，普通老安卓则优雅回退 */
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    
+    border-top: 2.5px dashed #E2DDD5; /* 小票撕口虚线顶边 */
     border-left: 1px solid #E2DDD5;
     border-right: 1px solid #E2DDD5;
-    border-bottom: 5px solid #E60012; 
+    border-bottom: none;            /* 贴底无需底粗边 */
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.05);
     z-index: 100;
-    max-width: 570px;
-    margin: 0 auto;
+    border-radius: 12px 12px 0 0;   /* 仅顶部两角保留圆角 */
 }
 
 .btn-add-row {
@@ -550,12 +588,12 @@ body {
     font-weight: 800;
 }
 
-/* 隐藏自带的 number 输入框调节箭头 */
+/* ================= 隐藏所有设备/平台浏览器内置的 number 输入框调节箭头，保证纯粹外观 ================= */
 input[type=number]::-webkit-inner-spin-button, 
 input[type=number]::-webkit-outer-spin-button { 
-    -webkit-appearance: none; 
-    margin: 0; 
+    -webkit-appearance: none !important; 
+    margin: 0 !important; 
 }
 input[type=number] {
-    -moz-appearance: textfield;
+    -moz-appearance: textfield !important; /* 针对 Firefox 隐藏箭头 */
 }
