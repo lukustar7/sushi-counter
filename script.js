@@ -1,161 +1,290 @@
-// ==========================================
-// 🍣 寿司计数器核心逻辑脚本 (Sushi Counter)
-// ==========================================
+// ==========================================================
+// 🍣 寿司计数器 2.0 核心业务逻辑脚本 (Sushiro Board)
+// ==========================================================
 
-// 默认寿司盘数据模板（升级为寿司郎经典四色盘价格矩阵）
-const DEFAULT_ITEMS = [
-    { id: 1, name: '红盘', price: 10, count: 0, color: '#E60012' }, // 寿司郎主打红盘，经典三文鱼、吞拿鱼等
-    { id: 2, name: '银盘', price: 15, count: 0, color: '#C0C0C0' }, // 银盘，特选赤虾、大脂等品质款
-    { id: 3, name: '金盘', price: 20, count: 0, color: '#FFD700' }, // 金盘，奢华星鳗、海胆海苔包等
-    { id: 4, name: '黑盘', price: 28, count: 0, color: '#1A1A1A' }  // 黑盘，顶级限定食材
-];
-
-// 精选好看的寿司盘颜色库，用于随机添加新行（保证配色和谐有品牌感）
-const BEAUTIFUL_COLORS = [
-    '#E60012', // 寿司郎大红
-    '#FFC000', // 蛋玉黄
-    '#C0C0C0', // 银盘灰
-    '#FF9500', // 甜橙黄
-    '#1A1A1A', // 海苔黑
-    '#4CD964', // 芥末绿
-    '#FF2D55', // 樱花粉
-    '#5AC8FA'  // 晴空蓝
-];
-
-// 全局状态管理
-let state = {
-    items: [],      // 当前盘子数据列表
-    theme: 'ios7'   // 当前启用的视觉主题，默认为 iOS 7
+// 经典寿司盘默认配置（白、红、银、金、黑五色，分别匹配 8/10/15/20/28 元）
+const DEFAULT_CLASSIC_PLATES = {
+    white: { name: '白盘', price: 8, count: 0, color: '#FFFFFF' },
+    red: { name: '红盘', price: 10, count: 0, color: '#E60012' },
+    silver: { name: '银盘', price: 15, count: 0, color: '#E5E5E7' },
+    gold: { name: '金盘', price: 20, count: 0, color: '#FFC000' },
+    black: { name: '黑盘', price: 28, count: 0, color: '#1A1A1A' }
 };
 
-// 页面加载初始化函数
+// 预设好看的自定义单点行边框随机配色库（避开低对比度和扎眼颜色）
+const BEAUTIFUL_COLORS = [
+    '#E60012', // 寿司郎大红
+    '#FFC000', // 蛋黄黄
+    '#A0D468', // 芥末绿
+    '#4FC1E9', // 晴空蓝
+    '#EC87C0', // 樱花粉
+    '#967ADC', // 芋泥紫
+    '#8E8E93', // 磨砂灰
+    '#FF9500'  // 甜橙橘
+];
+
+// 全局状态管理 State
+let state = {
+    classicPlates: {}, // 经典寿司盘数量管理
+    customItems: [],   // 用户自定义单点餐品行
+    teaPrice: 5,       // 茶位费单价（默认 5 元/人）
+    dineCount: 1       // 就餐人数（默认 1 人）
+};
+
+/**
+ * 页面加载初始化函数
+ */
 function init() {
-    // 1. 加载并应用本地保存的主题
-    const savedTheme = localStorage.getItem('sushi_theme');
-    if (savedTheme) {
-        state.theme = savedTheme;
-    }
-    setTheme(state.theme);
+    // 1. 从 LocalStorage 恢复就餐基本配置
+    const savedTeaPrice = localStorage.getItem('sushi_tea_price');
+    const savedDineCount = localStorage.getItem('sushi_dine_count');
+    
+    state.teaPrice = savedTeaPrice !== null ? parseFloat(savedTeaPrice) : 5;
+    state.dineCount = savedDineCount !== null ? parseInt(savedDineCount, 10) : 1;
 
-    // 2. 加载本地保存的数据，若无则使用默认的寿司郎配置
-    const savedData = localStorage.getItem('sushi_items');
-    if (savedData) {
-        state.items = JSON.parse(savedData);
+    // 同步配置到 DOM 输入框
+    document.getElementById('tea-price').value = state.teaPrice;
+    document.getElementById('dine-count').value = state.dineCount;
+
+    // 2. 从 LocalStorage 恢复经典盘子数据，若无则使用默认零盘初始化
+    const savedClassicData = localStorage.getItem('sushi_classic_plates');
+    if (savedClassicData) {
+        state.classicPlates = JSON.parse(savedClassicData);
+        // 兼容性检查：确保包含新增的“白盘”
+        if (!state.classicPlates.white) {
+            state.classicPlates.white = { name: '白盘', price: 8, count: 0, color: '#FFFFFF' };
+        }
     } else {
-        state.items = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+        state.classicPlates = JSON.parse(JSON.stringify(DEFAULT_CLASSIC_PLATES));
     }
 
-    // 3. 执行首次渲染和小计/总计计算
-    renderList();
+    // 3. 从 LocalStorage 恢复自定义餐品行
+    const savedCustomData = localStorage.getItem('sushi_custom_items');
+    if (savedCustomData) {
+        state.customItems = JSON.parse(savedCustomData);
+    } else {
+        state.customItems = []; // 默认无自定义单点
+    }
+
+    // 4. 执行首次全局渲染与金额计算
+    renderAll();
+}
+
+/**
+ * 全局渲染入口（渲染经典盘数量、自定义餐品行，并更新总账单）
+ */
+function renderAll() {
+    // 1. 同步经典彩盘数量到 DOM 文本
+    for (const color in state.classicPlates) {
+        const countSpan = document.getElementById(`count-${color}`);
+        if (countSpan) {
+            countSpan.textContent = state.classicPlates[color].count;
+        }
+    }
+
+    // 2. 渲染自定义横行列表
+    renderCustomList();
+
+    // 3. 重新计算汇总金额（总计与人均）
     updateTotal();
 }
 
-// 渲染列表区域的 HTML
-function renderList() {
+/**
+ * 增减经典彩盘数量
+ * @param {string} color 盘子颜色键值 (white, red, silver, gold, black)
+ * @param {number} delta 变化量 (1 或 -1)
+ */
+function changeClassicQty(color, delta) {
+    if (state.classicPlates[color]) {
+        let newCount = state.classicPlates[color].count + delta;
+        if (newCount < 0) newCount = 0; // 盘数不可为负数
+        state.classicPlates[color].count = newCount;
+        
+        saveState();
+        renderAll();
+    }
+}
+
+/**
+ * 监听就餐人数和茶位费手动修改并更新
+ */
+function updateTeaConfig() {
+    const teaPriceInput = document.getElementById('tea-price');
+    const dineCountInput = document.getElementById('dine-count');
+
+    let tPrice = parseFloat(teaPriceInput.value);
+    let dCount = parseInt(dineCountInput.value, 10);
+
+    if (isNaN(tPrice) || tPrice < 0) tPrice = 0;
+    if (isNaN(dCount) || dCount < 0) dCount = 0;
+
+    state.teaPrice = tPrice;
+    state.dineCount = dCount;
+
+    saveState();
+    updateTotal();
+}
+
+/**
+ * 快捷增减就餐人数
+ * @param {number} delta 变化量
+ */
+function changeDineCount(delta) {
+    let newCount = state.dineCount + delta;
+    if (newCount < 1) newCount = 1; // 默认最少 1 人就餐
+    state.dineCount = newCount;
+    document.getElementById('dine-count').value = newCount;
+
+    saveState();
+    updateTotal();
+}
+
+/**
+ * 渲染自定义单点横行列表 HTML 结构
+ */
+function renderCustomList() {
     const container = document.getElementById('list-container');
     container.innerHTML = ''; // 清空容器
 
-    // 遍历当前所有盘子数据，并生成对应的 HTML 行
-    state.items.forEach((item, index) => {
+    state.customItems.forEach((item, index) => {
         const row = document.createElement('div');
         row.className = 'row-item';
         
-        // 设置侧边盘子颜色的 CSS 变量
+        // 设置侧边盘子装饰条颜色的 CSS 变量
         row.style.setProperty('--row-color', item.color || '#ccc');
 
-        // 动态注入行 HTML 结构（输入框、计数按钮、小计、删除按钮）
+        // 动态注入横行结构（支持名称修改、单价修改、加减计数和小计）
         row.innerHTML = `
-            <input type="text" class="input-name" value="${item.name}" onchange="updateItem(${index}, 'name', this.value)">
-            <input type="number" class="input-price" value="${item.price}" onchange="updateItem(${index}, 'price', this.value)">
+            <input type="text" class="input-name" value="${item.name}" placeholder="餐品名称" onchange="updateCustomItem(${index}, 'name', this.value)">
+            <input type="number" class="input-price" value="${item.price}" placeholder="0" onchange="updateCustomItem(${index}, 'price', this.value)">
             
             <div class="qty-control">
-                <button class="btn-minus" onclick="changeQty(${index}, -1)">-</button>
+                <button class="btn-minus" onclick="changeCustomQty(${index}, -1)">-</button>
                 <input type="number" class="input-qty" value="${item.count}" readonly>
-                <button class="btn-plus" onclick="changeQty(${index}, 1)">+</button>
+                <button class="btn-plus" onclick="changeCustomQty(${index}, 1)">+</button>
             </div>
             
             <div class="row-total">¥${item.price * item.count}</div>
-            <button class="btn-delete" onclick="deleteRow(${index})">×</button>
+            <button class="btn-delete" onclick="deleteCustomRow(${index})">×</button>
         `;
         container.appendChild(row);
     });
 }
 
-// 更新某一行盘子的属性（名称或价格）
-function updateItem(index, field, value) {
+/**
+ * 修改自定义单点餐品属性 (名称或价格)
+ */
+function updateCustomItem(index, field, value) {
     if (field === 'price') {
-        value = parseFloat(value) || 0; // 确保价格是有效数字
+        value = parseFloat(value) || 0; // 确保是合法价格
     }
-    state.items[index][field] = value;
-    saveState();      // 保存至 LocalStorage
-    renderList();     // 重新渲染以更新小计金额显示
-    updateTotal();    // 重新计算并更新底部总金额
-}
-
-// 增加或减少指定盘子的数量
-function changeQty(index, delta) {
-    let newCount = state.items[index].count + delta;
-    if (newCount < 0) newCount = 0; // 数量不可为负数
-    state.items[index].count = newCount;
+    state.customItems[index][field] = value;
     saveState();
-    renderList();
+    renderCustomList();
     updateTotal();
 }
 
-// 新增一行自定义寿司盘
-function addRow() {
+/**
+ * 增减自定义单点行餐品数量
+ */
+function changeCustomQty(index, delta) {
+    let newCount = state.customItems[index].count + delta;
+    if (newCount < 0) newCount = 0; // 数量不可为负
+    state.customItems[index].count = newCount;
+    saveState();
+    renderCustomList();
+    updateTotal();
+}
+
+/**
+ * 新增一行自定义单点餐品
+ */
+function addCustomRow() {
     const newId = Date.now();
-    // 从我们准备好的好看颜色库中随机挑选一个颜色
+    // 随机选择精选色板中的美观颜色作为行边条
     const randomColor = BEAUTIFUL_COLORS[Math.floor(Math.random() * BEAUTIFUL_COLORS.length)];
     
-    state.items.push({
+    state.customItems.push({
         id: newId,
-        name: '新盘子',
+        name: '自定义餐点',
         price: 0,
-        count: 0,
+        count: 1, // 新增行默认为 1 件
         color: randomColor
     });
     saveState();
-    renderList();
+    renderAll();
 }
 
-// 删除某一行盘子
-function deleteRow(index) {
-    if (confirm('确定要删除这一个盘子分类吗？')) {
-        state.items.splice(index, 1);
+/**
+ * 删除自定义餐品行
+ */
+function deleteCustomRow(index) {
+    if (confirm('确定要删除这行自定义餐点吗？')) {
+        state.customItems.splice(index, 1);
         saveState();
-        renderList();
-        updateTotal();
+        renderAll();
     }
 }
 
-// 计算并显示底部总账单金额
+/**
+ * 实时汇总计算总金额与人均消费
+ */
 function updateTotal() {
-    const total = state.items.reduce((sum, item) => sum + (item.price * item.count), 0);
-    document.getElementById('grand-total').textContent = `¥${total}`;
+    // 1. 经典五色彩盘总金额
+    let classicTotal = 0;
+    for (const color in state.classicPlates) {
+        const item = state.classicPlates[color];
+        classicTotal += (item.price * item.count);
+    }
+
+    // 2. 自定义餐品总金额
+    const customTotal = state.customItems.reduce((sum, item) => sum + (item.price * item.count), 0);
+
+    // 3. 茶位费总金额
+    const teaTotal = state.teaPrice * state.dineCount;
+
+    // 4. 汇总账单
+    const grandTotal = classicTotal + customTotal + teaTotal;
+
+    // 5. 计算人均费用（防止就餐人数为0造成除零错误）
+    let averageTotal = grandTotal;
+    if (state.dineCount > 0) {
+        averageTotal = grandTotal / state.dineCount;
+    }
+
+    // 6. 同步至 DOM 界面显示 (保留 1 位小数，符合寿司郎账单习惯)
+    document.getElementById('grand-total').textContent = `¥${grandTotal.toFixed(1)}`;
+    document.getElementById('average-total').textContent = `¥${averageTotal.toFixed(1)}`;
 }
 
-// 切换并保存视觉主题
-function setTheme(themeName) {
-    document.body.className = `theme-${themeName}`;
-    state.theme = themeName;
-    localStorage.setItem('sushi_theme', themeName);
+/**
+ * 统一数据持久化存储
+ */
+function saveState() {
+    localStorage.setItem('sushi_tea_price', state.teaPrice);
+    localStorage.setItem('sushi_dine_count', state.dineCount);
+    localStorage.setItem('sushi_classic_plates', JSON.stringify(state.classicPlates));
+    localStorage.setItem('sushi_custom_items', JSON.stringify(state.customItems));
 }
 
-// 重置所有数量（恢复至默认的寿司郎经典彩盘状态）
+/**
+ * 重置所有数据（恢复初始收银面板设定：经典五盘归零、茶位5元、人数1人、清空单点行）
+ */
 function resetAll() {
-    if (confirm('确定要重置所有数据吗？这将恢复到默认的寿司郎经典盘组合。')) {
-        state.items = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+    if (confirm('确定要重置所有点单数据吗？这将恢复到默认的 1 人就餐及零消费。')) {
+        state.teaPrice = 5;
+        state.dineCount = 1;
+        state.customItems = [];
+        state.classicPlates = JSON.parse(JSON.stringify(DEFAULT_CLASSIC_PLATES));
+
+        // 更新 DOM
+        document.getElementById('tea-price').value = 5;
+        document.getElementById('dine-count').value = 1;
+
         saveState();
-        renderList();
-        updateTotal();
+        renderAll();
     }
 }
 
-// 将当前状态序列化保存至浏览器的 LocalStorage
-function saveState() {
-    localStorage.setItem('sushi_items', JSON.stringify(state.items));
-}
-
-// 启动计数器应用
+// 页面加载自动执行
 init();

@@ -3,60 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sushi Counter v1.0</title>
+    <title>寿司郎专属计数器 v2.0</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="theme-ios7"> <!-- 默认 iOS 7 -->
+<body class="theme-sushiro"> <!-- 寿司郎专属视觉主题 -->
 
-    <!-- 顶部控制栏 (换肤 + 标题) -->
+    <!-- 顶部控制栏 (标题 + 重置) -->
     <header class="app-header">
-        <div class="theme-switch">
-            <button onclick="setTheme('ios6')" class="btn-theme theme-ios6-btn" title="拟物经典"></button>
-            <button onclick="setTheme('ios7')" class="btn-theme theme-ios7-btn" title="极简扁平"></button>
-            <button onclick="setTheme('ios26')" class="btn-theme theme-ios26-btn" title="液态未来"></button>
-            <button onclick="setTheme('sushiro')" class="btn-theme theme-sushiro-btn" title="寿司郎特供">🍣</button>
-        </div>
-        <h1>计数器 v1.0</h1>
-        <button onclick="resetAll()" class="btn-reset" title="重置数量">
+        <div class="header-placeholder"></div> <!-- 用于两侧对称排版对齐 -->
+        <h1>寿司郎专属计数器</h1>
+        <button onclick="resetAll()" class="btn-reset" title="重置所有数据">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
         </button>
     </header>
     <!-- 寿司郎专属传送带动态线 -->
     <div class="conveyor-belt-line"></div>
 
-    <!-- 表头 (新增) -->
-    <div class="list-header">
-        <span class="header-name">项目</span>
-        <span class="header-price">单价</span>
-        <span class="header-qty">数量</span>
-        <span class="header-total">小计</span>
-        <span class="header-action"></span>
+    <!-- 就餐配置面板 (茶位费 + 人数) -->
+    <div class="dine-config-card">
+        <div class="config-item">
+            <span class="config-label">🍵 茶位费:</span>
+            <div class="price-input-wrapper">
+                <input type="number" id="tea-price" value="5" onchange="updateTeaConfig()">
+                <span class="unit">元/人</span>
+            </div>
+        </div>
+        <div class="config-item">
+            <span class="config-label">👥 就餐人数:</span>
+            <div class="qty-control">
+                <button class="btn-minus" onclick="changeDineCount(-1)">-</button>
+                <input type="number" id="dine-count" value="1" min="1" onchange="updateTeaConfig()">
+                <button class="btn-plus" onclick="changeDineCount(1)">+</button>
+            </div>
+        </div>
     </div>
 
-    <!-- 列表区域 -->
-    <main id="list-container">
-        <!-- JS 会动态插入行 -->
-        <!-- Example Row Structure (for reference):
-        <div class="row-item" style="--row-color: #FF5A5F;">
-            <input type="text" class="input-name" value="红盘">
-            <input type="number" class="input-price" value="6">
-            <div class="qty-control">
-                <button class="btn-minus">-</button>
-                <input type="number" class="input-qty" value="0">
-                <button class="btn-plus">+</button>
+    <!-- 经典圆形寿司盘快捷触控区 (2行网格) -->
+    <div class="classic-plates-section">
+        <h2>🍣 经典寿司盘</h2>
+        <div class="classic-plates-grid">
+            <!-- 第一行：白盘(8元)、红盘(10元) -->
+            <div class="grid-row row-2col">
+                <div class="plate-card" id="plate-card-white">
+                    <!-- 圆形立体盘子，点击盘身可直接快速 +1 盘 -->
+                    <div class="plate-circle-outer" onclick="changeClassicQty('white', 1)">
+                        <div class="plate-circle-inner" style="background: #FFFFFF; color: #1A1A1A; border: 3px dashed #E2DDD5;">
+                            <span class="plate-count" id="count-white">0</span>
+                        </div>
+                    </div>
+                    <div class="plate-info">
+                        <span class="plate-name">🥚 白盘</span>
+                        <span class="plate-price">¥8</span>
+                    </div>
+                    <div class="plate-actions">
+                        <button class="btn-plate-minus" onclick="changeClassicQty('white', -1)">-</button>
+                        <button class="btn-plate-plus" onclick="changeClassicQty('white', 1)">+</button>
+                    </div>
+                </div>
+                <div class="plate-card" id="plate-card-red">
+                    <!-- 圆形立体盘子，点击盘身可直接快速 +1 盘 -->
+                    <div class="plate-circle-outer" onclick="changeClassicQty('red', 1)">
+                        <div class="plate-circle-inner" style="background: #E60012; color: #FFFFFF; border: 3px dashed #C0000C;">
+                            <span class="plate-count" id="count-red">0</span>
+                        </div>
+                    </div>
+                    <div class="plate-info">
+                        <span class="plate-name">🔴 红盘</span>
+                        <span class="plate-price">¥10</span>
+                    </div>
+                    <div class="plate-actions">
+                        <button class="btn-plate-minus" onclick="changeClassicQty('red', -1)">-</button>
+                        <button class="btn-plate-plus" onclick="changeClassicQty('red', 1)">+</button>
+                    </div>
+                </div>
             </div>
-            <div class="row-total">¥0</div>
-            <button class="btn-delete">×</button>
+            
+            <!-- 第二行：银盘(15元)、金盘(20元)、黑盘(28元) -->
+            <div class="grid-row row-3col">
+                <div class="plate-card" id="plate-card-silver">
+                    <div class="plate-circle-outer" onclick="changeClassicQty('silver', 1)">
+                        <div class="plate-circle-inner" style="background: #E5E5E7; color: #1A1A1A; border: 3px dashed #C0C0C3;">
+                            <span class="plate-count" id="count-silver">0</span>
+                        </div>
+                    </div>
+                    <div class="plate-info">
+                        <span class="plate-name">⚪ 银盘</span>
+                        <span class="plate-price">¥15</span>
+                    </div>
+                    <div class="plate-actions">
+                        <button class="btn-plate-minus" onclick="changeClassicQty('silver', -1)">-</button>
+                        <button class="btn-plate-plus" onclick="changeClassicQty('silver', 1)">+</button>
+                    </div>
+                </div>
+                <div class="plate-card" id="plate-card-gold">
+                    <div class="plate-circle-outer" onclick="changeClassicQty('gold', 1)">
+                        <div class="plate-circle-inner" style="background: #FFC000; color: #FFFFFF; border: 3px dashed #D4A000;">
+                            <span class="plate-count" id="count-gold">0</span>
+                        </div>
+                    </div>
+                    <div class="plate-info">
+                        <span class="plate-name">🟡 金盘</span>
+                        <span class="plate-price">¥20</span>
+                    </div>
+                    <div class="plate-actions">
+                        <button class="btn-plate-minus" onclick="changeClassicQty('gold', -1)">-</button>
+                        <button class="btn-plate-plus" onclick="changeClassicQty('gold', 1)">+</button>
+                    </div>
+                </div>
+                <div class="plate-card" id="plate-card-black">
+                    <div class="plate-circle-outer" onclick="changeClassicQty('black', 1)">
+                        <div class="plate-circle-inner" style="background: #1A1A1A; color: #FFFFFF; border: 3px dashed #404040;">
+                            <span class="plate-count" id="count-black">0</span>
+                        </div>
+                    </div>
+                    <div class="plate-info">
+                        <span class="plate-name">⚫ 黑盘</span>
+                        <span class="plate-price">¥28</span>
+                    </div>
+                    <div class="plate-actions">
+                        <button class="btn-plate-minus" onclick="changeClassicQty('black', -1)">-</button>
+                        <button class="btn-plate-plus" onclick="changeClassicQty('black', 1)">+</button>
+                    </div>
+                </div>
+            </div>
         </div>
-        -->
-    </main>
+    </div>
 
-    <!-- 底部操作栏 (添加行 + 总计) -->
+    <!-- 自定义单点餐品区 -->
+    <div class="custom-plates-section">
+        <h2>🍜 自定义单点餐品</h2>
+        <!-- 表头 -->
+        <div class="list-header">
+            <span class="header-name">餐品名称</span>
+            <span class="header-price">单价</span>
+            <span class="header-qty">数量</span>
+            <span class="header-total">小计</span>
+            <span class="header-action"></span>
+        </div>
+
+        <!-- 自定义餐品行渲染容器 -->
+        <main id="list-container">
+            <!-- 动态生成的数据行 -->
+        </main>
+    </div>
+
+    <!-- 底部操作栏 (添加自定义 + 账单总计 + 人均消费) -->
     <footer class="app-footer">
-        <button onclick="addRow()" class="btn-add-row" title="添加新行">+</button>
-        <div class="total-display">
-            <span>总计:</span>
-            <span id="grand-total">¥0</span>
+        <button onclick="addCustomRow()" class="btn-add-row" title="添加自定义餐品">+</button>
+        <div class="bill-summary">
+            <div class="total-display">
+                <span class="label">总计:</span>
+                <span id="grand-total">¥0</span>
+            </div>
+            <div class="average-display">
+                <span class="label">就餐人均:</span>
+                <span id="average-total">¥0</span>
+            </div>
         </div>
     </footer>
 
