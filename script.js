@@ -1,5 +1,5 @@
 // ==========================================================
-// 🍣 寿司计数器 v3.0.0 核心业务逻辑脚本
+// 🍣 寿司计数器 v3.0.1 核心业务逻辑脚本
 // ==========================================================
 
 // 经典寿司盘默认配置（白、红、银、金、黑五色，分别匹配 8/10/15/20/28 元）
@@ -28,7 +28,7 @@ let state = {
     classicPlates: {}, // 经典寿司盘数量及单价管理
     customItems: [],   // 用户自定义单点餐品行
     teaPrice: 5,       // 茶位费单价（默认 5 元/人）
-    dineCount: 1       // 就餐人数（默认 1 人）
+    dineCount: 1       //就餐人数（默认 1 人）
 };
 
 /**
@@ -43,6 +43,14 @@ function init() {
         state.teaPrice = savedTeaPrice !== null ? parseFloat(savedTeaPrice) : 5;
         state.dineCount = savedDineCount !== null ? parseInt(savedDineCount, 10) : 1;
 
+        // 🚨 初始加载数据合法性防御校验，强力阻断本地异常脏数据渲染
+        if (isNaN(state.teaPrice) || state.teaPrice < 0) {
+            state.teaPrice = 5;
+        }
+        if (isNaN(state.dineCount) || state.dineCount < 1) {
+            state.dineCount = 1;
+        }
+
         // 同步配置到 DOM 输入框
         document.getElementById('tea-price').value = state.teaPrice;
         document.getElementById('dine-count').value = state.dineCount;
@@ -52,7 +60,7 @@ function init() {
         if (savedClassicData) {
             const parsedClassicData = JSON.parse(savedClassicData);
             
-            // 🚨 向下兼容性防护：检查旧版数据格式
+            // 向下兼容性防护：检查旧版数据格式
             // 如果旧版数据以扁平数组格式（1.x 遗留结构）存在，则直接触发自我清理和默认值回填
             if (Array.isArray(parsedClassicData)) {
                 console.warn('[Storage] 检测到不兼容的旧版数组格式 LocalStorage，正在执行重置...');
@@ -68,6 +76,14 @@ function init() {
             state.classicPlates = JSON.parse(JSON.stringify(DEFAULT_CLASSIC_PLATES));
         }
 
+        // 针对经典盘恢复出的单价进行防御校验，防止脏数据注入
+        for (const color in state.classicPlates) {
+            let itemPrice = parseFloat(state.classicPlates[color].price);
+            if (isNaN(itemPrice) || itemPrice < 0) {
+                state.classicPlates[color].price = DEFAULT_CLASSIC_PLATES[color].price;
+            }
+        }
+
         // 将恢复的经典盘子单价实时同步到对应的 input 输入框中
         for (const color in state.classicPlates) {
             const priceInput = document.getElementById(`price-${color}`);
@@ -80,6 +96,18 @@ function init() {
         const savedCustomData = localStorage.getItem('sushi_custom_items');
         if (savedCustomData) {
             state.customItems = JSON.parse(savedCustomData);
+            // 确保自定义项是数组结构
+            if (!Array.isArray(state.customItems)) {
+                state.customItems = [];
+            } else {
+                // 防御自定义项单价出现负数
+                state.customItems.forEach(item => {
+                    let itemPrice = parseFloat(item.price);
+                    if (isNaN(itemPrice) || itemPrice < 0) {
+                        item.price = 0;
+                    }
+                });
+            }
         } else {
             state.customItems = []; // 默认无自定义单点
         }
@@ -90,7 +118,8 @@ function init() {
         // 5. 注册 PWA Service Worker (支持桌面添加到屏幕与 100% 离线使用)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
+                // 绑定版本指纹注册，强行击穿 Service Worker 级联强缓存
+                navigator.serviceWorker.register('./sw.js?v=3.0.1')
                     .then(reg => console.log('[PWA] Service Worker 注册成功，Scope:', reg.scope))
                     .catch(err => console.error('[PWA] Service Worker 注册失败：', err));
             });
@@ -153,6 +182,12 @@ function updateClassicPrice(color, newPrice) {
         if (isNaN(price) || price < 0) price = 0; // 容错处理：不合法单价设为 0
         state.classicPlates[color].price = price;
         
+        // 🚨 DOM 状态写回同步：确保输入框内显示的值与 JS 内存中洗涤纠错后的值 100% 同步一致，防止“所见非所得”
+        const priceInput = document.getElementById(`price-${color}`);
+        if (priceInput) {
+            priceInput.value = price;
+        }
+        
         saveState();
         updateTotal();
     }
@@ -169,10 +204,14 @@ function updateTeaConfig() {
     let dCount = parseInt(dineCountInput.value, 10);
 
     if (isNaN(tPrice) || tPrice < 0) tPrice = 0;
-    if (isNaN(dCount) || dCount < 0) dCount = 0;
+    if (isNaN(dCount) || dCount < 1) dCount = 1;
 
     state.teaPrice = tPrice;
     state.dineCount = dCount;
+
+    // 🚨 DOM 状态写回同步：确保人数和茶位输入框显示最新规范清洗后的值，防止输入负数越界
+    teaPriceInput.value = tPrice;
+    dineCountInput.value = dCount;
 
     saveState();
     updateTotal();
@@ -253,6 +292,7 @@ function restoreZero(input, defaultValue) {
 function updateCustomItem(index, field, value) {
     if (field === 'price') {
         value = parseFloat(value) || 0; // 确保是合法价格
+        if (value < 0) value = 0; // 🚨 防御边界漏洞：自定义单价绝不可为负数，防止恶意扣减账单
     }
     state.customItems[index][field] = value;
     saveState();
