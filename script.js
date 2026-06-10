@@ -1,5 +1,5 @@
 // ==========================================================
-// 🍣 寿司计数器 2.1 核心业务逻辑脚本
+// 🍣 寿司计数器 v3.0.0 核心业务逻辑脚本
 // ==========================================================
 
 // 经典寿司盘默认配置（白、红、银、金、黑五色，分别匹配 8/10/15/20/28 元）
@@ -11,7 +11,7 @@ const DEFAULT_CLASSIC_PLATES = {
     black: { name: '黑盘', price: 28, count: 0, color: '#1A1A1A' }
 };
 
-// 预设好看的自定义单点行边框随机配色库（避开低对比度和扎眼颜色）
+// 预设好配色的自定义单点行边框随机颜色库（避开低对比度和杂乱颜色）
 const BEAUTIFUL_COLORS = [
     '#E60012', // 经典大红
     '#FFC000', // 蛋黄黄
@@ -35,55 +35,75 @@ let state = {
  * 页面加载初始化函数
  */
 function init() {
-    // 1. 从 LocalStorage 恢复就餐基本配置
-    const savedTeaPrice = localStorage.getItem('sushi_tea_price');
-    const savedDineCount = localStorage.getItem('sushi_dine_count');
-    
-    state.teaPrice = savedTeaPrice !== null ? parseFloat(savedTeaPrice) : 5;
-    state.dineCount = savedDineCount !== null ? parseInt(savedDineCount, 10) : 1;
+    try {
+        // 1. 从 LocalStorage 恢复就餐基本配置
+        const savedTeaPrice = localStorage.getItem('sushi_tea_price');
+        const savedDineCount = localStorage.getItem('sushi_dine_count');
+        
+        state.teaPrice = savedTeaPrice !== null ? parseFloat(savedTeaPrice) : 5;
+        state.dineCount = savedDineCount !== null ? parseInt(savedDineCount, 10) : 1;
 
-    // 同步配置到 DOM 输入框
-    document.getElementById('tea-price').value = state.teaPrice;
-    document.getElementById('dine-count').value = state.dineCount;
+        // 同步配置到 DOM 输入框
+        document.getElementById('tea-price').value = state.teaPrice;
+        document.getElementById('dine-count').value = state.dineCount;
 
-    // 2. 从 LocalStorage 恢复经典盘子数据（含自定义单价），若无则使用默认零盘初始化
-    const savedClassicData = localStorage.getItem('sushi_classic_plates');
-    if (savedClassicData) {
-        state.classicPlates = JSON.parse(savedClassicData);
-        // 兼容性检查：确保包含新增的“白盘”
-        if (!state.classicPlates.white) {
-            state.classicPlates.white = { name: '白盘', price: 8, count: 0, color: '#FFFFFF' };
+        // 2. 从 LocalStorage 恢复经典盘子数据（包含自定义单价）
+        const savedClassicData = localStorage.getItem('sushi_classic_plates');
+        if (savedClassicData) {
+            const parsedClassicData = JSON.parse(savedClassicData);
+            
+            // 🚨 向下兼容性防护：检查旧版数据格式
+            // 如果旧版数据以扁平数组格式（1.x 遗留结构）存在，则直接触发自我清理和默认值回填
+            if (Array.isArray(parsedClassicData)) {
+                console.warn('[Storage] 检测到不兼容的旧版数组格式 LocalStorage，正在执行重置...');
+                state.classicPlates = JSON.parse(JSON.stringify(DEFAULT_CLASSIC_PLATES));
+            } else {
+                state.classicPlates = parsedClassicData;
+                // 确保由于版本演进缺失的“白盘”得到初始化
+                if (!state.classicPlates.white) {
+                    state.classicPlates.white = { name: '白盘', price: 8, count: 0, color: '#FFFFFF' };
+                }
+            }
+        } else {
+            state.classicPlates = JSON.parse(JSON.stringify(DEFAULT_CLASSIC_PLATES));
         }
-    } else {
+
+        // 将恢复的经典盘子单价实时同步到对应的 input 输入框中
+        for (const color in state.classicPlates) {
+            const priceInput = document.getElementById(`price-${color}`);
+            if (priceInput) {
+                priceInput.value = state.classicPlates[color].price;
+            }
+        }
+
+        // 3. 从 LocalStorage 恢复自定义餐品行
+        const savedCustomData = localStorage.getItem('sushi_custom_items');
+        if (savedCustomData) {
+            state.customItems = JSON.parse(savedCustomData);
+        } else {
+            state.customItems = []; // 默认无自定义单点
+        }
+
+        // 4. 执行首次全局渲染与金额计算
+        renderAll();
+
+        // 5. 注册 PWA Service Worker (支持桌面添加到屏幕与 100% 离线使用)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('[PWA] Service Worker 注册成功，Scope:', reg.scope))
+                    .catch(err => console.error('[PWA] Service Worker 注册失败：', err));
+            });
+        }
+    } catch (error) {
+        console.error('[Init] 初始化失败，正在强制重置数据以恢复运行：', error);
+        // 如果由于极端异常导致解析出错，强行清空本地存储并回天默认值以防止页面白屏
+        localStorage.clear();
         state.classicPlates = JSON.parse(JSON.stringify(DEFAULT_CLASSIC_PLATES));
-    }
-
-    // 将恢复出来的经典盘子单价实时同步回对应的 input 输入框中
-    for (const color in state.classicPlates) {
-        const priceInput = document.getElementById(`price-${color}`);
-        if (priceInput) {
-            priceInput.value = state.classicPlates[color].price;
-        }
-    }
-
-    // 3. 从 LocalStorage 恢复自定义餐品行
-    const savedCustomData = localStorage.getItem('sushi_custom_items');
-    if (savedCustomData) {
-        state.customItems = JSON.parse(savedCustomData);
-    } else {
-        state.customItems = []; // 默认无自定义单点
-    }
-
-    // 4. 执行首次全局渲染与金额计算
-    renderAll();
-
-    // 5. 注册 PWA Service Worker (支持桌面添加到屏幕与100%离线秒开)
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('[PWA] Service Worker 注册成功！Scope:', reg.scope))
-                .catch(err => console.log('[PWA] Service Worker 注册失败：', err));
-        });
+        state.customItems = [];
+        state.teaPrice = 5;
+        state.dineCount = 1;
+        renderAll();
     }
 }
 
@@ -123,7 +143,7 @@ function changeClassicQty(color, delta) {
 }
 
 /**
- * 允许用户手动修改经典彩盘的单价（支持景区/折扣店等自定义定价）
+ * 手动修改经典彩盘的单价（支持自定义定价）
  * @param {string} color 盘子颜色键值
  * @param {string} newPrice 用户输入的新单价
  */
@@ -186,7 +206,7 @@ function renderCustomList() {
         // 设置侧边盘子装饰条颜色的 CSS 变量
         row.style.setProperty('--row-color', item.color || '#ccc');
 
-        // 动态注入横行结构（在价格框中追加 onfocus="clearZero(this)" 等智能清零功能，免去手动按退格键退掉 0 元的繁琐操作）
+        // 动态注入横行结构（在价格框中追加 onfocus="clearZero(this)" 等智能清零功能）
         row.innerHTML = `
             <input type="text" class="input-name" value="${item.name}" placeholder="餐品名称" onchange="updateCustomItem(${index}, 'name', this.value)">
             <input type="number" class="input-price" value="${item.price}" placeholder="0" onfocus="clearZero(this)" onblur="restoreZero(this, 0)" onchange="updateCustomItem(${index}, 'price', this.value)">
@@ -205,7 +225,7 @@ function renderCustomList() {
 }
 
 /**
- * 智能清空输入框默认零值（多平台全兼容实现）
+ * 智能清空输入框默认零值，免去手机端繁琐的退格操作
  * @param {HTMLInputElement} input 输入框对象
  */
 function clearZero(input) {
@@ -222,7 +242,7 @@ function clearZero(input) {
 function restoreZero(input, defaultValue) {
     if (input.value.trim() === '') {
         input.value = defaultValue;
-        // 触发一次值更新计算
+        // 手动分发变更事件触发金额计算
         input.dispatchEvent(new Event('change'));
     }
 }
@@ -253,7 +273,7 @@ function changeCustomQty(index, delta) {
 }
 
 /**
- * 新增一行自定义单点餐品（体验优化：默认价格为 0 元，但因为有聚焦自动清空，用户输入极度丝滑）
+ * 新增一行自定义单点餐品
  */
 function addCustomRow() {
     const newId = Date.now();
@@ -308,23 +328,32 @@ function updateTotal() {
         averageTotal = grandTotal / state.dineCount;
     }
 
-    // 6. 同步至 DOM 界面显示 (保留 1 位小数，符合寿司郎账单习惯)
+    // 6. 同步至 DOM 确认渲染显示 (保留 1 位小数)
     document.getElementById('grand-total').textContent = `¥${grandTotal.toFixed(1)}`;
     document.getElementById('average-total').textContent = `¥${averageTotal.toFixed(1)}`;
 }
 
 /**
  * 统一数据持久化存储
+ * 🚨 健壮性保护：使用 try-catch 包裹写入逻辑，防范移动端 LocalStorage 空间已满引发的页面崩溃
  */
 function saveState() {
-    localStorage.setItem('sushi_tea_price', state.teaPrice);
-    localStorage.setItem('sushi_dine_count', state.dineCount);
-    localStorage.setItem('sushi_classic_plates', JSON.stringify(state.classicPlates));
-    localStorage.setItem('sushi_custom_items', JSON.stringify(state.customItems));
+    try {
+        localStorage.setItem('sushi_tea_price', state.teaPrice);
+        localStorage.setItem('sushi_dine_count', state.dineCount);
+        localStorage.setItem('sushi_classic_plates', JSON.stringify(state.classicPlates));
+        localStorage.setItem('sushi_custom_items', JSON.stringify(state.customItems));
+    } catch (error) {
+        console.error('[Storage] 数据写入 LocalStorage 失败：', error);
+        // 如果捕获到存储爆满（配额超限）异常，弹出友好且不中断流程的警告提示
+        if (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+            alert('本地存储空间已满！当前点单数据将无法在页面刷新后被保留。请尝试删除部分自定义餐品以释放空间。');
+        }
+    }
 }
 
 /**
- * 重置所有数据（恢复初始收银面板设定：经典五盘价格和数量归零/默认、茶位5元、人数1人、清空单点行）
+ * 重置所有数据（恢复初始设定：经典五盘归零、茶位5元、人数1人、清空单点行）
  */
 function resetAll() {
     if (confirm('确定要重置所有点单数据吗？这将恢复到默认的 1 人就餐及零消费。')) {
@@ -333,7 +362,7 @@ function resetAll() {
         state.customItems = [];
         state.classicPlates = JSON.parse(JSON.stringify(DEFAULT_CLASSIC_PLATES));
 
-        // 更新 DOM 输入框的价值
+        // 更新 DOM
         document.getElementById('tea-price').value = 5;
         document.getElementById('dine-count').value = 1;
         for (const color in state.classicPlates) {

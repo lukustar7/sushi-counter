@@ -1,7 +1,7 @@
 {
   "name": "寿司计数器",
   "short_name": "寿司计数",
-  "description": "专为寿司郎等回转寿司量身定制的快捷点餐收银与人均结算面板",
+  "description": "专为日式回转寿司场景设计的快捷点餐收银与人均结算计数面板",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
