@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>寿司计数器 v3.0.1</title>
-    <link rel="stylesheet" href="style.css?v=3.0.1">
+    <title>寿司计数器 v3.0.2</title>
+    <link rel="stylesheet" href="style.css?v=3.0.2">
     
     <!-- 📲 渐进式网页 App (PWA) 核心支持元数据，实现“添加到主屏幕”全屏原生体验 -->
     <link rel="manifest" href="manifest.json">
@@ -33,7 +33,7 @@
             <span class="config-label">🍵 茶位费:</span>
             <div class="price-input-wrapper">
                 <!-- 智能清零：在聚焦且值为 0 时自动帮用户清空输入框，失焦空值则自动回填默认值 -->
-                <input type="number" id="tea-price" value="5" onfocus="clearZero(this)" onblur="restoreZero(this, 5)" onchange="updateTeaConfig()">
+                <input type="number" id="tea-price" value="5" onfocus="clearZero(this)" oninput="updateTeaConfig(false)" onblur="restoreZero(this, 5)" onchange="updateTeaConfig(true)">
                 <span class="unit">元/人</span>
             </div>
         </div>
@@ -41,7 +41,7 @@
             <span class="config-label">👥 就餐人数:</span>
             <div class="dine-qty-control">
                 <button class="btn-minus" onclick="changeDineCount(-1)">-</button>
-                <input type="number" id="dine-count" class="input-qty" value="1" min="1" onfocus="clearZero(this)" onblur="restoreZero(this, 1)" onchange="updateTeaConfig()">
+                <input type="number" id="dine-count" class="input-qty" value="1" min="1" onfocus="clearZero(this)" oninput="updateTeaConfig(false)" onblur="restoreZero(this, 1)" onchange="updateTeaConfig(true)">
                 <button class="btn-plus" onclick="changeDineCount(1)">+</button>
             </div>
         </div>
@@ -65,7 +65,7 @@
                         <div class="plate-price-wrapper">
                             <span>¥</span>
                             <!-- 可自由编辑的拟真无边框单价输入框，支持自动聚焦清空 -->
-                            <input type="number" class="input-plate-price" id="price-white" value="8" onfocus="clearZero(this)" onblur="restoreZero(this, 8)" onchange="updateClassicPrice('white', this.value)">
+                            <input type="number" class="input-plate-price" id="price-white" value="8" onfocus="clearZero(this)" oninput="updateClassicPrice('white', this.value, false)" onblur="restoreZero(this, 8)" onchange="updateClassicPrice('white', this.value, true)">
                         </div>
                     </div>
                     <div class="plate-actions">
@@ -84,7 +84,7 @@
                         <span class="plate-name">🔴 红盘</span>
                         <div class="plate-price-wrapper">
                             <span>¥</span>
-                            <input type="number" class="input-plate-price" id="price-red" value="10" onfocus="clearZero(this)" onblur="restoreZero(this, 10)" onchange="updateClassicPrice('red', this.value)">
+                            <input type="number" class="input-plate-price" id="price-red" value="10" onfocus="clearZero(this)" oninput="updateClassicPrice('red', this.value, false)" onblur="restoreZero(this, 10)" onchange="updateClassicPrice('red', this.value, true)">
                         </div>
                     </div>
                     <div class="plate-actions">
@@ -106,7 +106,7 @@
                         <span class="plate-name">⚪ 银盘</span>
                         <div class="plate-price-wrapper">
                             <span>¥</span>
-                            <input type="number" class="input-plate-price" id="price-silver" value="15" onfocus="clearZero(this)" onblur="restoreZero(this, 15)" onchange="updateClassicPrice('silver', this.value)">
+                            <input type="number" class="input-plate-price" id="price-silver" value="15" onfocus="clearZero(this)" oninput="updateClassicPrice('silver', this.value, false)" onblur="restoreZero(this, 15)" onchange="updateClassicPrice('silver', this.value, true)">
                         </div>
                     </div>
                     <div class="plate-actions">
@@ -124,7 +124,7 @@
                         <span class="plate-name">🟡 金盘</span>
                         <div class="plate-price-wrapper">
                             <span>¥</span>
-                            <input type="number" class="input-plate-price" id="price-gold" value="20" onfocus="clearZero(this)" onblur="restoreZero(this, 20)" onchange="updateClassicPrice('gold', this.value)">
+                            <input type="number" class="input-plate-price" id="price-gold" value="20" onfocus="clearZero(this)" oninput="updateClassicPrice('gold', this.value, false)" onblur="restoreZero(this, 20)" onchange="updateClassicPrice('gold', this.value, true)">
                         </div>
                     </div>
                     <div class="plate-actions">
@@ -142,7 +142,7 @@
                         <span class="plate-name">⚫ 黑盘</span>
                         <div class="plate-price-wrapper">
                             <span>¥</span>
-                            <input type="number" class="input-plate-price" id="price-black" value="28" onfocus="clearZero(this)" onblur="restoreZero(this, 28)" onchange="updateClassicPrice('black', this.value)">
+                            <input type="number" class="input-plate-price" id="price-black" value="28" onfocus="clearZero(this)" oninput="updateClassicPrice('black', this.value, false)" onblur="restoreZero(this, 28)" onchange="updateClassicPrice('black', this.value, true)">
                         </div>
                     </div>
                     <div class="plate-actions">
@@ -187,6 +187,6 @@
         </div>
     </footer>
 
-    <script src="script.js?v=3.0.1"></script>
+    <script src="script.js?v=3.0.2"></script>
 </body>
 </html>

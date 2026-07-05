@@ -1,16 +1,17 @@
 // ==========================================================
-// 🍣 寿司计数器 PWA Service Worker 核心拦截缓存脚本 (sw.js)
+// 寿司计数器 PWA Service Worker 核心拦截缓存脚本 (sw.js)
 // ==========================================================
 
-// 每次大版本更新时升级缓存版本名称，强迫所有浏览器清空历史缓存并重新拉取
-const CACHE_NAME = 'sushi-counter-cache-v3.0.1';
+// 每次发布静态资源更新时升级缓存版本名称，确保浏览器能拉取最新文件。
+const CACHE_PREFIX = 'sushi-counter-cache-';
+const CACHE_NAME = `${CACHE_PREFIX}v3.0.2`;
 
-// 预缓存核心静态资源，保障在无网络信号环境下依然可以 0.1 秒秒开
+// 预缓存核心静态资源，保障无网络环境下仍可打开基础页面。
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
-    './style.css?v=3.0.1',  // 绑定 3.0.1 版本指纹
-    './script.js?v=3.0.1', // 绑定 3.0.1 脚本防缓存指纹
+    './style.css?v=3.0.2',
+    './script.js?v=3.0.2',
     './manifest.json',
     './icon.svg'
 ];
@@ -31,18 +32,19 @@ self.addEventListener('install', event => {
 });
 
 /**
- * 2. 监听 Service Worker 激活事件 (Activate)
- * 遍历已有的 Cache 库，强力清理并删除所有过期的历史版本旧缓存，释放存储空间
+ * 2. 监听 Service Worker 激活事件 (Activate)。
+ * 只清理本应用创建的旧缓存，避免误删同源下其它本地项目的 Cache Storage。
  */
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(
                 cacheNames.map(name => {
-                    if (name !== CACHE_NAME) {
-                        console.log('[Service Worker] 终极清理废弃的旧版缓存:', name);
+                    if (name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME) {
+                        console.log('[Service Worker] 清理寿司计数器旧版缓存:', name);
                         return caches.delete(name);
                     }
+                    return undefined;
                 })
             );
         }).then(() => self.clients.claim()) // 立即取得对所有客户端页面的控制
@@ -50,9 +52,9 @@ self.addEventListener('activate', event => {
 });
 
 /**
- * 3. 监听网络拦截事件 (Fetch)
- * 采用“缓存优先，网络回退 (Cache First, Network Fallback)”策略，拦截同源 GET 请求，
- * 实现脱网状态下的 100% 离线秒开体验，并动态将联网请求成功的新资源存入缓存。
+ * 3. 监听网络拦截事件 (Fetch)。
+ * HTML 页面使用“联网优先，断网回缓存”，防止旧首页长期锁住新版本入口。
+ * CSS/JS/图标等静态文件继续使用“缓存优先，联网回退”，保证离线启动速度。
  */
 self.addEventListener('fetch', event => {
     // 仅拦截本站同源的 GET 请求，防止意外干扰其它第三方外部服务
@@ -60,32 +62,64 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    event.respondWith(
-        caches.match(event.request)
-            .then(cachedResponse => {
-                // 如果在本地 Cache Storage 中命中了缓存，直接立即返回，实现 0.1 秒离线秒开
-                if (cachedResponse) {
-                    return cachedResponse;
-                }
-                
-                // 缓存未命中，则发起真实的网络抓取
-                return fetch(event.request).then(response => {
-                    // 若请求不成功，直接将原始响应返回给页面
-                    if (!response || response.status !== 200 || response.type !== 'basic') {
-                        return response;
-                    }
-                    
-                    // 联网获取成功后，克隆一份响应并动态存入缓存，以便下次离线使用
-                    const responseToCache = response.clone();
-                    caches.open(CACHE_NAME).then(cache => {
-                        cache.put(event.request, responseToCache);
-                    });
-                    
-                    return response;
-                }).catch(() => {
-                    // 彻底断网且没有缓存命中时的安全兜底
-                    console.log('[Service Worker] 彻底断网且未命中本地缓存：', event.request.url);
-                });
-            })
-    );
+    const acceptsHtml = event.request.headers.get('accept')?.includes('text/html');
+    if (event.request.mode === 'navigate' || acceptsHtml) {
+        event.respondWith(networkFirst(event.request));
+        return;
+    }
+
+    event.respondWith(cacheFirst(event.request));
 });
+
+/**
+ * HTML 导航请求优先从网络获取，失败时回退到缓存首页。
+ * @param {Request} request 页面请求
+ * @returns {Promise<Response>} 页面响应
+ */
+function networkFirst(request) {
+    return fetch(request)
+        .then(response => {
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+                return response;
+            }
+
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+                cache.put(request, responseToCache);
+            });
+            return response;
+        })
+        .catch(() => caches.match(request).then(cachedResponse => {
+            return cachedResponse || caches.match('./index.html').then(indexResponse => {
+                return indexResponse || new Response('当前离线且本地缓存尚未建立，请联网打开一次寿司计数器。', {
+                    status: 503,
+                    headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+                });
+            });
+        }));
+}
+
+/**
+ * 静态资源优先从缓存读取，缓存未命中时联网获取并写入缓存。
+ * @param {Request} request 静态资源请求
+ * @returns {Promise<Response>} 静态资源响应
+ */
+function cacheFirst(request) {
+    return caches.match(request).then(cachedResponse => {
+        if (cachedResponse) {
+            return cachedResponse;
+        }
+
+        return fetch(request).then(response => {
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+                return response;
+            }
+
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+                cache.put(request, responseToCache);
+            });
+            return response;
+        });
+    });
+}
