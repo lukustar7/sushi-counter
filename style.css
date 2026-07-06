@@ -152,7 +152,7 @@ body {
     margin-left: 2px;
 }
 
-/* 👥 人数加减器专属高兼容性容器，强力防止 WebKit/Safari input 撑开 */
+/* 👥 人数加减器专属高兼容性容器，强力防止部分浏览器 input 撑开 */
 .dine-qty-control {
     width: 90px;
     display: flex;
@@ -519,7 +519,7 @@ body {
     justify-content: space-between;
     align-items: center;
     
-    /* 极致高兼容性安全区适配：完美适配带刘海的苹果/安卓全面屏，普通老安卓则优雅回退 */
+    /* 极致高兼容性安全区适配：完美适配带刘海的全面屏，普通屏幕则优雅回退 */
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     
     border-top: 2.5px dashed #E2DDD5; /* 小票撕口虚线顶边 */
