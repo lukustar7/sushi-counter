@@ -10,7 +10,7 @@
 
 ## 运行
 
-项目无构建步骤、无第三方依赖。
+项目无构建步骤，运行时无第三方依赖。
 
 ```bash
 python3 -m http.server 8765
@@ -24,6 +24,21 @@ http://localhost:8765/
 
 直接打开 `index.html` 可以使用基础计数功能，但 Service Worker 与 PWA 离线缓存需要在 `localhost` 或 HTTPS 静态服务下运行。
 
+## 技术结构
+
+- `core.js` 负责数据清洗、旧数据迁移、状态序列化与账单计算，不依赖浏览器 DOM。
+- `script.js` 负责页面事件、局部渲染、本地存储和 Service Worker 注册。
+- `sw.js` 负责同源静态资源预缓存、旧缓存清理和离线回退。
+- `tests/` 使用 Node.js 内置测试模块覆盖业务边界与静态安全约束。
+
+## 验证
+
+验证需要 Node.js 18 或更高版本，不需要安装第三方包。
+
+```bash
+npm run verify
+```
+
 ## 数据存储
 
-数据保存在浏览器 `localStorage` 中，键名均以 `sushi_` 开头。重置操作只清理本应用数据，不影响同源下其它项目的本地数据。
+数据以带架构版本的单个 JSON 状态保存在浏览器 `localStorage` 中，键名为 `sushi_state_v1`。旧版四键数据会自动迁移，重置操作不影响同源下其它项目的数据。

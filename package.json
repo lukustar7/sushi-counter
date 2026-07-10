@@ -1,0 +1,11 @@
+{
+  "name": "sushi-counter",
+  "version": "3.0.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check core.js && node --check script.js && node --check sw.js",
+    "test": "node --test",
+    "verify": "npm run check && npm test"
+  }
+}

@@ -1,24 +1,37 @@
 /* ==========================================================
-// 🍣 寿司计数器 3.0 全局样式表
+// 寿司计数器 3.0 全局样式表
 // ========================================================== */
 
 :root {
-    --bg-color: #FAF8F3;            /* 日式暖米背景色 */
-    --text-color: #1A1A1A;          /* 海苔黑文字 */
-    --btn-bg: #E60012;              /* 经典大红 */
-    --btn-color: #FFFFFF;           /* 按钮纯白文字 */
+    color-scheme: light;
+    --bg-color: #F2F2F7;            /* 中性页面底色，减少大面积单一暖色 */
+    --text-color: #1C1C1E;          /* 高对比度正文颜色 */
+    --secondary-text: #636366;       /* 次要信息颜色 */
+    --btn-bg: #E60012;              /* 主操作强调色 */
+    --btn-color: #FFFFFF;           /* 主按钮文字颜色 */
     --btn-border: 1px solid #D60010;
-    --btn-radius: 12px;             /* 亲和力圆角 */
-    --shadow: 0 6px 16px rgba(230, 0, 18, 0.05); /* 暖红极轻阴影 */
-    --row-bg: #FFFFFF;              /* 卡片白底 */
-    --row-radius: 12px;             /* 列表卡片大圆角 */
-    --input-bg: #FAF8F3;            /* 输入框暖米灰底色 */
-    --input-border: 1px solid #E2DDD5; /* 暖木灰色边框 */
+    --btn-radius: 8px;
+    --shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    --row-bg: #FFFFFF;
+    --muted-bg: #F8F8FA;
+    --row-radius: 8px;
+    --input-bg: #F8F8FA;
+    --border-color: #D1D1D6;
+    --input-border: 1px solid var(--border-color);
     --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans CJK SC", sans-serif;
 }
 
 * {
     box-sizing: border-box;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+button,
+input {
+    font: inherit;
 }
 
 body {
@@ -28,9 +41,10 @@ body {
     margin: 0;
     padding: 15px;
     padding-bottom: 140px; /* 增大底部间距，完全防止最后一项被底部小票栏挡住 */
-    transition: background 0.3s, color 0.3s;
-    max-width: 600px; /* 适配移动端的最佳居中宽度 */
+    transition: background-color 0.2s, color 0.2s;
+    max-width: 600px;
     margin: 0 auto;
+    overflow-x: hidden;
 }
 
 /* ================= 顶部控制栏 (Classic Red) ================= */
@@ -51,7 +65,7 @@ body {
     font-size: 18px;
     font-weight: 800;
     margin: 0;
-    letter-spacing: 1px;
+    letter-spacing: 0;
     flex-grow: 1;
     text-align: center; /* 标题完美居中 */
 }
@@ -120,7 +134,7 @@ body {
 .config-label {
     font-weight: 700;
     font-size: 14px;
-    color: #333333;
+    color: var(--text-color);
 }
 
 .price-input-wrapper {
@@ -133,7 +147,8 @@ body {
 }
 
 .price-input-wrapper input {
-    width: 42px;
+    width: 70px;
+    min-width: 0;
     background: transparent;
     border: none;
     text-align: center;
@@ -148,13 +163,13 @@ body {
 
 .unit {
     font-size: 12px;
-    color: #666;
+    color: var(--secondary-text);
     margin-left: 2px;
 }
 
 /* 👥 人数加减器专属高兼容性容器，强力防止部分浏览器 input 撑开 */
 .dine-qty-control {
-    width: 90px;
+    width: 116px;
     display: flex;
     align-items: center;
     gap: 2px;
@@ -175,7 +190,7 @@ body {
     font-size: 15px;
     font-weight: 800;
     margin: 0 0 15px 0;
-    color: #333;
+    color: var(--text-color);
     border-left: 4px solid #E60012;
     padding-left: 8px;
 }
@@ -202,7 +217,7 @@ body {
 
 /* 经典圆形盘子卡片 */
 .plate-card {
-    background: #FAF8F3;
+    background: var(--muted-bg);
     border-radius: 12px;
     border: 1px solid rgba(226, 221, 213, 0.5);
     padding: 12px 6px;
@@ -231,6 +246,9 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    border: 0;
+    color: inherit;
+    appearance: none;
 }
 
 .plate-circle-outer:active {
@@ -247,6 +265,37 @@ body {
     box-shadow: 
         inset 0 3px 6px rgba(0, 0, 0, 0.15), 
         0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 五种盘面颜色由固定类控制，配合 CSP 禁止任意内联样式。 */
+.plate-card--white .plate-circle-inner {
+    background: #FFFFFF;
+    color: #1A1A1A;
+    border: 3px dashed #D1D1D6;
+}
+
+.plate-card--red .plate-circle-inner {
+    background: #E60012;
+    color: #FFFFFF;
+    border: 3px dashed #A8000D;
+}
+
+.plate-card--silver .plate-circle-inner {
+    background: #E5E5E7;
+    color: #1A1A1A;
+    border: 3px dashed #A8A8AD;
+}
+
+.plate-card--gold .plate-circle-inner {
+    background: #FFC000;
+    color: #1A1A1A;
+    border: 3px dashed #B38600;
+}
+
+.plate-card--black .plate-circle-inner {
+    background: #1A1A1A;
+    color: #FFFFFF;
+    border: 3px dashed #555555;
 }
 
 .plate-count {
@@ -266,7 +315,7 @@ body {
 .plate-name {
     font-size: 13px;
     font-weight: 700;
-    color: #1A1A1A;
+    color: var(--text-color);
 }
 
 /* 💵 可编辑拟真单价输入框样式 */
@@ -281,12 +330,12 @@ body {
     border: 1px solid rgba(226, 221, 213, 0.4);
     border-radius: 6px;
     padding: 1px 4px;
-    width: 48px;
+    width: min(70px, 100%);
     margin-top: 2px;
 }
 
 .input-plate-price {
-    width: 24px;
+    width: 48px;
     border: none !important;
     background: transparent !important;
     color: #E60012;
@@ -311,8 +360,8 @@ body {
 }
 
 .btn-plate-minus, .btn-plate-plus {
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     border: 1px solid #D60010;
     background: #E60012;
@@ -345,7 +394,7 @@ body {
     font-size: 15px;
     font-weight: 800;
     margin: 0 0 15px 0;
-    color: #333;
+    color: var(--text-color);
     border-left: 4px solid #34C759; /* 绿条区别于内置经典盘 */
     padding-left: 8px;
 }
@@ -358,14 +407,14 @@ body {
     font-size: 12px;
     opacity: 0.6;
     margin-bottom: 8px;
-    background: #FAF8F3;
+    background: var(--muted-bg);
     border-radius: 6px;
     border: 1px solid rgba(226, 221, 213, 0.3);
 }
 
 .header-name { flex: 1; text-align: left; }
 .header-price { width: 50px; text-align: right; margin-right: 5px; }
-.header-qty { width: 90px; text-align: center; }
+.header-qty { width: 116px; text-align: center; }
 .header-total { width: 50px; text-align: right; }
 .header-action { width: 25px; }
 
@@ -378,9 +427,26 @@ body {
     margin-bottom: 8px;
     border-radius: 8px;
     border: 1px solid rgba(226, 221, 213, 0.4);
-    border-left: 4px solid var(--row-color, #ccc); 
+    border-left: 4px solid var(--border-color);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
     transition: transform 0.2s ease;
+}
+
+/* 自定义行边框只使用固定色板索引，避免 JavaScript 注入 style 属性。 */
+.row-item[data-color-index="0"] { border-left-color: #E60012; }
+.row-item[data-color-index="1"] { border-left-color: #FFC000; }
+.row-item[data-color-index="2"] { border-left-color: #65A30D; }
+.row-item[data-color-index="3"] { border-left-color: #0284C7; }
+.row-item[data-color-index="4"] { border-left-color: #DB2777; }
+.row-item[data-color-index="5"] { border-left-color: #7C3AED; }
+.row-item[data-color-index="6"] { border-left-color: #6B7280; }
+.row-item[data-color-index="7"] { border-left-color: #EA580C; }
+
+.empty-state {
+    margin: 8px 0 2px;
+    color: var(--secondary-text);
+    font-size: 13px;
+    text-align: center;
 }
 
 .row-item:hover {
@@ -428,13 +494,13 @@ body {
     display: flex;
     align-items: center;
     gap: 2px;
-    width: 90px;
+    width: 116px;
     justify-content: center;
 }
 
 .btn-minus, .btn-plus {
-    width: 26px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
     background: #E60012;
     color: #FFFFFF;
     border: 1px solid #D60010;
@@ -454,7 +520,7 @@ body {
 }
 
 .input-qty {
-    width: 30px;
+    width: 44px;
     text-align: center;
     background: transparent;
     border: none;
@@ -462,6 +528,8 @@ body {
     font-size: 15px;
     font-weight: 800;
     padding: 0;
+    display: inline-block;
+    line-height: 32px;
 }
 
 .row-total {
@@ -471,6 +539,7 @@ body {
     margin-left: 5px;
     font-size: 13px;
     color: #E60012;
+    overflow-wrap: anywhere;
 }
 
 .btn-delete {
@@ -479,7 +548,8 @@ body {
     color: #ff3b30;
     font-size: 20px;
     margin-left: 5px;
-    width: 25px;
+    width: 32px;
+    height: 32px;
     cursor: pointer;
     padding: 0;
     display: flex;
@@ -522,9 +592,9 @@ body {
     /* 极致高兼容性安全区适配：完美适配带刘海的全面屏，普通屏幕则优雅回退 */
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     
-    border-top: 2.5px dashed #E2DDD5; /* 小票撕口虚线顶边 */
-    border-left: 1px solid #E2DDD5;
-    border-right: 1px solid #E2DDD5;
+    border-top: 2px dashed var(--border-color);
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
     border-bottom: none;            /* 贴底无需底粗边 */
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.05);
     z-index: 100;
@@ -532,8 +602,8 @@ body {
 }
 
 .btn-add-row {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     background: #34C759;
     color: white;
     border: none;
@@ -556,6 +626,8 @@ body {
     flex-direction: column;
     align-items: flex-end;
     gap: 1px;
+    min-width: 0;
+    max-width: calc(100% - 56px);
 }
 
 .total-display {
@@ -568,19 +640,21 @@ body {
 
 .total-display .label {
     font-size: 13px;
-    color: #666;
+    color: var(--secondary-text);
     font-weight: 700;
 }
 
 .total-display #grand-total {
     color: #E60012;
     font-size: 22px;
+    overflow-wrap: anywhere;
+    text-align: right;
 }
 
 .average-display {
     font-size: 14px;
     font-weight: 700;
-    color: #555555;
+    color: var(--secondary-text);
     display: flex;
     align-items: baseline;
     gap: 4px;
@@ -588,7 +662,7 @@ body {
 
 .average-display .label {
     font-size: 11px;
-    color: #888;
+    color: var(--secondary-text);
     font-weight: 500;
 }
 
@@ -596,6 +670,39 @@ body {
     color: #E60012;
     font-size: 15px;
     font-weight: 800;
+    overflow-wrap: anywhere;
+    text-align: right;
+}
+
+/* 非阻塞状态消息固定在账单栏上方，不改变主体布局。 */
+.app-status {
+    position: fixed;
+    left: 50%;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    z-index: 110;
+    width: min(calc(100% - 30px), 570px);
+    margin: 0;
+    padding: 9px 12px;
+    transform: translateX(-50%);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--row-bg);
+    color: var(--text-color);
+    box-shadow: var(--shadow);
+    font-size: 13px;
+    text-align: center;
+}
+
+.app-status[data-tone="error"] {
+    border-color: #FF3B30;
+    color: #B42318;
+}
+
+/* 键盘用户必须能明确看见当前操作位置。 */
+button:focus-visible,
+input:focus-visible {
+    outline: 3px solid #0A84FF !important;
+    outline-offset: 2px;
 }
 
 /* ================= 隐藏所有设备/平台浏览器内置的 number 输入框调节箭头，保证纯粹外观 ================= */
@@ -606,6 +713,111 @@ input[type=number]::-webkit-outer-spin-button {
 }
 input[type=number] {
     -moz-appearance: textfield !important; /* 针对 Firefox 隐藏箭头 */
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        color-scheme: dark;
+        --bg-color: #111113;
+        --text-color: #F2F2F7;
+        --secondary-text: #AEAEB2;
+        --row-bg: #1C1C1E;
+        --muted-bg: #2C2C2E;
+        --input-bg: #2C2C2E;
+        --border-color: #48484A;
+        --shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+    }
+
+    .app-header {
+        border-color: #FF1A2E;
+    }
+
+    .plate-circle-outer {
+        background: linear-gradient(135deg, #6B6B70 0%, #2C2C2E 100%);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.18);
+    }
+
+    .app-status[data-tone="error"] {
+        color: #FF6961;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .dine-config-card {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+    }
+
+    .config-item {
+        min-width: 0;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .price-input-wrapper,
+    .dine-qty-control {
+        width: 100%;
+        min-height: 36px;
+        justify-content: center;
+    }
+
+    .list-header {
+        display: none;
+    }
+
+    .row-item {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 68px 32px;
+        grid-template-areas:
+            "name price delete"
+            "quantity total total";
+        gap: 8px;
+        padding: 8px;
+    }
+
+    .input-name {
+        grid-area: name;
+        width: 100%;
+        min-width: 0;
+        margin: 0;
+    }
+
+    .input-price {
+        grid-area: price;
+        width: 68px;
+        margin: 0;
+    }
+
+    .qty-control {
+        grid-area: quantity;
+        width: 116px;
+        justify-self: start;
+    }
+
+    .row-total {
+        grid-area: total;
+        width: auto;
+        margin: 0;
+        align-self: center;
+        text-align: right;
+    }
+
+    .btn-delete {
+        grid-area: delete;
+        margin: 0;
+    }
 }
 
 @media (max-width: 360px) {
@@ -619,13 +831,7 @@ input[type=number] {
     }
 
     .dine-config-card {
-        align-items: stretch;
-        flex-direction: column;
         padding: 10px 12px;
-    }
-
-    .config-item {
-        justify-content: space-between;
     }
 
     .classic-plates-section,
@@ -655,44 +861,41 @@ input[type=number] {
         gap: 6px;
     }
 
-    .list-header {
-        display: none;
-    }
-
     .row-item {
-        padding: 7px 4px;
+        grid-template-columns: minmax(0, 1fr) 62px 32px;
+        padding: 7px;
     }
 
     .input-name {
-        min-width: 38px;
-        margin-right: 3px;
+        min-width: 0;
+        margin: 0;
     }
 
     .input-price {
-        width: 42px;
-        margin-right: 3px;
+        width: 62px;
+        margin: 0;
         padding: 5px 3px;
     }
 
     .qty-control {
-        width: 78px;
+        width: 108px;
     }
 
     .btn-minus,
     .btn-plus {
-        width: 24px;
-        height: 24px;
+        width: 30px;
+        height: 30px;
     }
 
     .row-total {
-        width: 45px;
-        margin-left: 3px;
+        width: auto;
+        margin: 0;
         font-size: 12px;
     }
 
     .btn-delete {
-        width: 22px;
-        margin-left: 3px;
+        width: 30px;
+        margin: 0;
     }
 
     .app-footer {
